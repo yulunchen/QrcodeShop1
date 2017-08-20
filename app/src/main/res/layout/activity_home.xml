@@ -4,8 +4,9 @@
     android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorPrimaryDark"
     android:orientation="vertical"
-    tools:context="com.example.terry.qrzxing.SignActivity" >
+    tools:context="com.example.terry.qrzxing.SignActivity">
 
 
     <ImageView
@@ -29,7 +30,8 @@
             android:layout_weight="1"
             android:background="@android:drawable/progress_horizontal"
             android:onClick="san"
-            android:text="產品掃描" />
+            android:text="產品掃描"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/Car"
@@ -38,7 +40,8 @@
             android:layout_weight="1"
             android:background="@android:drawable/progress_horizontal"
             android:onClick="shop"
-            android:text="購物車" />
+            android:text="購物車"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/list"
@@ -47,7 +50,8 @@
             android:layout_weight="1"
             android:background="@android:drawable/progress_horizontal"
             android:onClick="send"
-            android:text="訂單查詢" />
+            android:text="訂單查詢"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/hello"
@@ -56,6 +60,7 @@
             android:layout_weight="1"
             android:background="@android:drawable/progress_horizontal"
             android:onClick="welcome"
-            android:text="會員資料" />
+            android:text="會員資料"
+            android:textStyle="bold" />
     </LinearLayout>
 </LinearLayout>

@@ -13,7 +13,6 @@ import android.widget.Toast;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
 public class HomeActivity extends AppCompatActivity implements IPaddress {
     ImageView img;
     Intent it1, it2 ,it3, it4;
@@ -54,23 +53,27 @@ public class HomeActivity extends AppCompatActivity implements IPaddress {
         // 設定目的地為UserActivity頁面，並放入帳號字串資料
         it1 = new Intent(this, SignActivity.class);
         startActivity(it1);
+        finish();
     }
 
     public void shop(View v) {
         // 設定目的地為UserActivity頁面，並放入帳號字串資料
         it2 = new Intent(this, ShopActivity.class);
         startActivity(it2);
+        finish();
     }
 
     public void send(View v) {
         // 設定目的地為UserActivity頁面，並放入帳號字串資料
         it3 = new Intent(this, OrderActivity.class);
         startActivity(it3);
+        finish();
     }
     public void welcome(View v) {
         // 設定目的地為UserActivity頁面，並放入帳號字串資料
         it4 = new Intent(this, UserActivity.class);
         startActivity(it4);
+        finish();
     }
 
     //自訂返回鍵的方法

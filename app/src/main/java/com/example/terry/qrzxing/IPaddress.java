@@ -6,7 +6,7 @@ package com.example.terry.qrzxing;
 
 public interface IPaddress {
     final String ip = "sql12.freemysqlhosting.net:3306";
-    final String dbName = "sql1218909";
-    final String sqldbaccount = "sql1218909";
+    final String dbName = "sql12189094";
+    final String sqldbaccount = "sql12189094";
     final String sqldbpass = "xEFnDBsUZl";
 }

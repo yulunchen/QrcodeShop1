@@ -12,6 +12,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,12 +21,13 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class RegisterActivity extends AppCompatActivity implements IPaddress{
+public class RegisterActivity extends AppCompatActivity implements IPaddress, View.OnClickListener{
 	TextView emailTxv;
 	EditText nameEdit, phoneEdit, addressEdit, psEdit;
 	Button registerBt;
 	String Woo_gmail, Woo_name, Woo_phone, Woo_add, Woo_ps;
 	Intent it1, it2;
+	ImageView exit;
 
 	Connection con;
 	PreparedStatement pst;
@@ -74,6 +76,9 @@ public class RegisterActivity extends AppCompatActivity implements IPaddress{
 		addressEdit = (EditText) findViewById(R.id.addressEdit);
 		psEdit = (EditText) findViewById(R.id.psEdit);
 		registerBt = (Button) findViewById(R.id.registerBt);
+		exit=(ImageView)findViewById(R.id.exit);
+		exit.setOnClickListener(this);
+
 	}
 
 	protected void getEdit() {//設定要取得的輸入資料
@@ -85,12 +90,12 @@ public class RegisterActivity extends AppCompatActivity implements IPaddress{
 
 	//註冊按鈕
 	public void regist(View v) {
-	    //判斷有無輸入資料
-        if("".equals(nameEdit.getText().toString().trim())){
+		//判斷有無輸入資料
+		if("".equals(nameEdit.getText().toString().trim())){
 			Toast.makeText(v.getContext(), "請輸入姓名", Toast.LENGTH_LONG).show();
 		}else if(3>addressEdit.getText().toString().trim().length()){
 			Toast.makeText(v.getContext(), "地址格式不正確", Toast.LENGTH_LONG).show();
-        }else if(10!=phoneEdit.getText().toString().trim().length()){
+		}else if(10!=phoneEdit.getText().toString().trim().length()){
 			Toast.makeText(v.getContext(), "手機號碼格式不正確", Toast.LENGTH_LONG).show();
 		}else {
 			//取得輸入資料
@@ -178,5 +183,12 @@ public class RegisterActivity extends AppCompatActivity implements IPaddress{
 			finish();
 		}
 		return false;
+	}
+
+	@Override
+	public void onClick(View view) {
+		Intent it =new Intent(this, MainActivity.class);
+		startActivity(it);
+		finish();
 	}
 }

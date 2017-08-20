@@ -11,11 +11,13 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -25,12 +27,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements OnItemSelectedListener, IPaddress {
+public class MainActivity extends AppCompatActivity implements OnItemSelectedListener, IPaddress, View.OnClickListener {
 	Spinner account_sp;
 	Button start;
 	String vipEmail, selEmail;
-
+	ImageView exit;
 	Connection con;
 	Statement stmt;
 	ResultSet rs;
@@ -63,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 	protected void myView() {// 頁面設定方法
 		account_sp = (Spinner) findViewById(R.id.account_sp);
 		start = (Button) findViewById(R.id.start);
+		exit=(ImageView)findViewById(R.id.exit);
 	}
 
 
@@ -74,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 		ArrayList<String> account_str = new ArrayList<String>();// 建立放入帳號的陣列
 		// 取得所有帳號並轉成String型態後放入account_str陣列
 		for (Account account : accounts) {
-			vipEmail = account.name.toString();//vivian  name to Woo_name 0723 // name 改 Woo_name 有錯誤
+			vipEmail = account.name.toString();
 			account_str.add(vipEmail);
 		}
 
@@ -88,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 
 	protected void myListener() {// 註冊監聽器
 		account_sp.setOnItemSelectedListener(this);
+		exit.setOnClickListener(this);
 	}
 
 	// 取得在Spinner中所選取的帳號並轉成String型態
@@ -103,13 +109,9 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 		String createTable1 = "CREATE TABLE IF NOT EXISTS " + Vip_TB + "(_id INTEGER PRIMARY KEY AUTOINCREMENT, " + // 索引欄位
 				"gmail VARCHAR(60), " + "name VARCHAR(32), " + "phone VARCHAR(32), " + "address VARCHAR(50), "+ "ps VARCHAR(200))";
 		db.execSQL(createTable1);
-		//查詢資料表
-		cur=db.rawQuery("SELECT * FROM "+ Vip_TB, null);
-		//若會員資料表內有資料時清空資料
-		if(cur.getCount()!=0){
-			String del="DELETE FROM "+Vip_TB;
-			db.execSQL(del);
-		}
+
+		String del="DELETE FROM "+Vip_TB;
+		db.execSQL(del);
 
 		//建立購物車資料表
 		String createTable2 ="CREATE TABLE IF NOT EXISTS " + Shop_TB +
@@ -142,11 +144,11 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 		// 設定目的地為UserActivity頁面，並放入帳號字串資料
 		it1 = new Intent(this, LineActivity.class);
 		flag_b=1;
-		it1.putExtra("Woo_gmail", selEmail);//vivian email to Woo_gmail 0723
+		it1.putExtra("Woo_gmail", selEmail);
 		it1.putExtra("flag",flag_b);
 		// 設定目的地為RegistActivity頁面，並方入帳號字串資料
 		it2 = new Intent(this, RegisterActivity.class);
-		it2.putExtra("Woo_gmail", selEmail); //vivian email to Woo_gmail 0723
+		it2.putExtra("Woo_gmail", selEmail);
 	}
 
 	// 非同步任務設定
@@ -162,14 +164,14 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 						"jdbc:mysql://" + ip + "/" + dbName + "?useUnicode=true&characterEncoding=UTF-8", sqldbaccount,
 						sqldbpass);//vivian  與IPaddress設定名稱相同
 				// 查詢帳號是否已使用
-				String selectSQL = "select * from woo_table where Woo_gmail='" + selEmail + "'"; //vivian vip_email to woo_table 0723
-				                                           //尋找資料夾名稱 找尋是否有相同帳號 如直接蒐尋欄位name 會找不到資料
+				String selectSQL = "select * from woo_table where Woo_gmail='" + selEmail + "'";
+				//尋找資料夾名稱 找尋是否有相同帳號 如直接蒐尋欄位name 會找不到資料
 				stmt = con.createStatement();
 				rs = stmt.executeQuery(selectSQL);// 執行sql查詢指令
 				// 讀取所有查詢資料中有無相同帳號名稱
 				while (rs.next()) {
 					// 一定要注意就算只有輸入一個值，params[0]也不能寫成params
-					if (rs.getString("Woo_gmail").equals(params[0])) { //vivian email to Woo_gmail 0723
+					if (rs.getString("Woo_gmail").equals(params[0])) {
 						flag_a = 1;// 帳號已註冊將旗標改為1
 					}
 
@@ -205,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 				startActivity(it2);
 				// 關閉本頁
 				finish();
-			} 
+			}
 		}
 	};
 
@@ -215,4 +217,40 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 
 	}
 
+	Boolean isExit = false;
+	Boolean hasTask = false;
+	Timer timerExit = new Timer();// 建立計時器
+	TimerTask tak = new TimerTask() {// 設定要執行的工作
+		public void run() {
+			isExit = false;
+			hasTask = true;
+		}
+	};
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) { // 判斷是否按下返回鍵
+			if (isExit == false) {// 按一下不會退出
+				isExit = true; // 按兩次才退出
+				Toast.makeText(this, "再按一次返回鍵離開", Toast.LENGTH_SHORT).show();
+				if (!hasTask) {
+					timerExit.schedule(tak, 2000);// 如果超過兩秒則恢復預設值
+				}
+			} else {
+				finishAffinity();// 結束APP程式
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public void onClick(View view) {
+		if (isExit == false) {// 按一下不會退出
+			isExit = true; // 按兩次才退出
+			Toast.makeText(this, "再按一次返回鍵離開", Toast.LENGTH_SHORT).show();
+			if (!hasTask) {
+				timerExit.schedule(tak, 2000);// 如果超過兩秒則恢復預設值
+			}
+		} else {
+			finishAffinity();// 結束APP程式
+		}
+	}
 }

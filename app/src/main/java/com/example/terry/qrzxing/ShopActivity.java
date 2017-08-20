@@ -2,21 +2,22 @@ package com.example.terry.qrzxing;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,14 +29,16 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class ShopActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, IPaddress{
+public class ShopActivity extends AppCompatActivity implements AdapterView.OnItemClickListener,
+        AdapterView.OnItemLongClickListener, IPaddress, View.OnClickListener{
     ListView lv;
     TextView total;
     TextView goods_sel;
     EditText quantity_et;
     String goods_up, Woo_gmail, Woo_nq, Woo_num, Woo_total, phone;
     Button button;
-    int flag;
+    ImageView exit;
+    int flag, subtotal;
 
     static final String DB_NAME = "Vip_DB";// SQLitey資料庫名稱
     static final String Shop_TB= "Shop_TB";// 購物車資料表名稱
@@ -60,6 +63,7 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
         total=(TextView)findViewById(R.id.total);
         lv=(ListView) findViewById(R.id.lv);
         button=(Button)findViewById(R.id.button);
+        exit=(ImageView) findViewById(R.id.exit);
         // 開啟或建立資料庫
         db = openOrCreateDatabase(DB_NAME, Context.MODE_PRIVATE, null);
         //查詢購物車內所有資料
@@ -74,7 +78,9 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
         lv.setAdapter(adapter);// 設定 Adapter
         lv.setOnItemClickListener(this);//設定短按監視器
         lv.setOnItemLongClickListener(this);//設定長按監視器
+        exit.setOnClickListener(this);
         total();//執行合計計算方法
+
     }
 
     @Override
@@ -113,7 +119,7 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
 
     //合計計算方法
     protected void total(){
-        int subtotal=0;
+        subtotal=0;
         //讀取目前sql資料庫中所有資料
         cur_tl=db.rawQuery("SELECT *  FROM "+ Shop_TB, null);
         //在每一筆資料進行計算
@@ -135,10 +141,29 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
         cur_shop.moveToPosition(i);
         goods_up=cur_shop.getString(cur_shop.getColumnIndex(FROM[0]));
-        //刪除sql資料庫中所選取商品名稱的整筆資料
-        db.delete(Shop_TB, "goods="+"'"+goods_up+"'",null);
-        //重新整理畫面
-        requery();
+        AlertDialog.Builder d = new AlertDialog.Builder(this);
+        //設定對話視窗的標題
+        d.setMessage("確定要刪除這項商品嗎?");
+        //按下確定時的動作
+        d.setPositiveButton("確定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+                //刪除sql資料庫中所選取商品名稱的整筆資料
+                db.delete(Shop_TB, "goods="+"'"+goods_up+"'",null);
+                //重新整理畫面
+                requery();
+            }
+        });
+        //按下取消時
+        d.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+                dialog.cancel();// 關閉對話框
+            }
+        });
+        d.show();
         return true;
     }
 
@@ -164,7 +189,9 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
             Intent it=new Intent(this, HomeActivity.class);
             startActivity(it);
             finish();
-        }else {
+        }else if(subtotal<1){
+            Toast.makeText(getApplicationContext(), "購物車沒有商品", Toast.LENGTH_LONG).show();
+        }else{
             Cursor cur1 = db.rawQuery("SELECT * FROM " + Shop_TB, null);
             //給Woo_nq空值
             Woo_nq = "";
@@ -220,8 +247,8 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
                         "jdbc:mysql://" + ip + "/" + dbName + "?useUnicode=true&characterEncoding=UTF-8", sqldbaccount,
                         sqldbpass);
                 ///設定新增資料的sql語法
-                String insertdbSQL = "insert into woo_order (Woo_gmail,Woo_nq,Woo_num,Woo_total) "
-                        + "VALUES(?, ? , ?, ?)";
+                String insertdbSQL = "insert into woo_order (Woo_gmail,Woo_nq,Woo_num,Woo_total) "//vivian 0723 vip_email(id,email,name,phone,address)
+                        + "VALUES(?, ? , ?, ?)";// vivian 0723 "select ifNULL(max(id),0)+1,?,?,?,? FROM vip_email"
                 //將帶入的字串陣列依序將字串放入相應的欄位順序
                 pst=con.prepareStatement(insertdbSQL);//vivian 0724 新增
                 pst.setString(1, params[0]);
@@ -260,6 +287,7 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
             //寄出簡訊
             sms.sendTextMessage(mobile, null,  message, null, null);
 
+            Toast.makeText(getApplicationContext(), "訂單編號已發送至手機簡訊", Toast.LENGTH_LONG).show();
             //清掉這筆購物車表單資料
             String del="DELETE FROM "+Shop_TB;
             db.execSQL(del);
@@ -271,47 +299,17 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     };
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, 0, Menu.NONE, "首        頁");
-        menu.add(0, 1, Menu.NONE, "產品掃描");
-        menu.add(0, 2, Menu.NONE, "訂單查詢");
-        menu.add(0, 3, Menu.NONE, "會員資料");
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case 0:
-                Intent it1 = new Intent(this, HomeActivity.class);//建立 Intent 並設定目標 Activity
-                startActivity(it1);// 啟動 Intent 中的目標
-                finish();
-                break;
-            case 1:
-                Intent it2 = new Intent(this, SignActivity.class);//建立 Intent 並設定目標 Activity
-                startActivity(it2);// 啟動 Intent 中的目標
-                finish();
-                break;
-            case 2:
-                Intent it3 = new Intent(this, OrderActivity.class);//建立 Intent 並設定目標 Activity
-                startActivity(it3);// 啟動 Intent 中的目標
-                finish();
-                break;
-            case 3:
-                Intent it4 = new Intent(this, UserActivity.class);//建立 Intent 並設定目標 Activity
-                startActivity(it4);// 啟動 Intent 中的目標
-                finish();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) { // 判斷是否按下返回鍵
+            startActivity(new Intent(this, HomeActivity.class));
             finish();
         }
         return false;
+    }
+
+    @Override
+    public void onClick(View view) {
+        startActivity(new Intent(this, HomeActivity.class));
+        finish();
     }
 }

@@ -5,12 +5,11 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,16 +21,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-public class OrderActivity extends AppCompatActivity implements IPaddress{
+public class OrderActivity extends AppCompatActivity implements IPaddress, View.OnClickListener{
     EditText editText;
     Button button;
     ListView lv;
     TextView txv;
+    ImageView exit;
     String number, nq_all, total;
     Connection con;
     Statement stmt;
     ResultSet rs;
-    //集合物件，用來放ListView的內容
+    //集合物物件，用來放ListView的內容
     ArrayList<String> array=new ArrayList<>();
     int flag;
     @Override
@@ -51,6 +51,8 @@ public class OrderActivity extends AppCompatActivity implements IPaddress{
         button=(Button)findViewById(R.id.button);
         lv=(ListView)findViewById(R.id.lv);
         txv=(TextView)findViewById(R.id.txv);
+        exit=(ImageView)findViewById(R.id.exit);
+        exit.setOnClickListener(this);
     }
 
     public void inquire(View v){
@@ -126,7 +128,7 @@ public class OrderActivity extends AppCompatActivity implements IPaddress{
                 showList(nq_spli);
                 //在畫面上顯示總金額
             }
-            txv.setText(total);
+            txv.setText("總金額："+total+"元");
             flag = 1;
             button.setText("回首頁");
             button.setEnabled(true);//恢復按鈕功能
@@ -139,47 +141,19 @@ public class OrderActivity extends AppCompatActivity implements IPaddress{
         lv.setAdapter(nq_adapter);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, 0, Menu.NONE, "首        頁");
-        menu.add(0, 1, Menu.NONE, "產品掃描");
-        menu.add(0, 2, Menu.NONE, "購  物  車");
-        menu.add(0, 3, Menu.NONE, "會員資料");
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case 0:
-                Intent it1 = new Intent(this, HomeActivity.class);//建立 Intent 並設定目標 Activity
-                startActivity(it1);// 啟動 Intent 中的目標
-                finish();
-                break;
-            case 1:
-                Intent it2 = new Intent(this, SignActivity.class);//建立 Intent 並設定目標 Activity
-                startActivity(it2);// 啟動 Intent 中的目標
-                finish();
-                break;
-            case 2:
-                Intent it3 = new Intent(this, ShopActivity.class);//建立 Intent 並設定目標 Activity
-                startActivity(it3);// 啟動 Intent 中的目標
-                finish();
-                break;
-            case 3:
-                Intent it4 = new Intent(this, UserActivity.class);//建立 Intent 並設定目標 Activity
-                startActivity(it4);// 啟動 Intent 中的目標
-                finish();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) { // 判斷是否按下返回鍵
+            startActivity(new Intent(this, HomeActivity.class));
             finish();
         }
         return false;
+    }
+
+    @Override
+    public void onClick(View view) {
+        startActivity(new Intent(this, HomeActivity.class));
+        finish();
     }
 }

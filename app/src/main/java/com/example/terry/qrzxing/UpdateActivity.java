@@ -11,6 +11,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.sql.Connection;
@@ -20,10 +21,11 @@ import java.sql.SQLException;
 
 
 
-public class UpdateActivity extends AppCompatActivity implements IPaddress{
+public class UpdateActivity extends AppCompatActivity implements IPaddress, View.OnClickListener{
 	EditText name_edit, phone_edit, address_edit,ps_edit;
 	Intent it1, it2;
 	Button savebt;
+	ImageView exit;
 	String Woo_gmail,Woo_name,Woo_add,Woo_phone,Woo_ps;
 	Connection con;
 
@@ -54,18 +56,20 @@ public class UpdateActivity extends AppCompatActivity implements IPaddress{
 		phone_edit.setText(Woo_phone);
 		address_edit.setText(Woo_add);
 		ps_edit.setText(Woo_ps);
+		exit=(ImageView)findViewById(R.id.exit);
+		exit.setOnClickListener(this);
 	}
 
-	
+
 	public void save (View v) {
-        //判斷有無輸入資料
-        if("".equals(name_edit.getText().toString().trim())){
-            Toast.makeText(v.getContext(), "請輸入姓名", Toast.LENGTH_LONG).show();
-        }else if(10!=phone_edit.getText().toString().trim().length()){
-            Toast.makeText(v.getContext(), "手機號碼格式不正確", Toast.LENGTH_LONG).show();
-        }else if(3>address_edit.getText().toString().trim().length()){
-            Toast.makeText(v.getContext(), "地址格式不正確", Toast.LENGTH_LONG).show();
-        }else {
+		//判斷有無輸入資料
+		if("".equals(name_edit.getText().toString().trim())){
+			Toast.makeText(v.getContext(), "請輸入姓名", Toast.LENGTH_LONG).show();
+		}else if(10!=phone_edit.getText().toString().trim().length()){
+			Toast.makeText(v.getContext(), "手機號碼格式不正確", Toast.LENGTH_LONG).show();
+		}else if(3>address_edit.getText().toString().trim().length()){
+			Toast.makeText(v.getContext(), "地址格式不正確", Toast.LENGTH_LONG).show();
+		}else {
 			Woo_name = name_edit.getText().toString().trim();
 			Woo_phone = phone_edit.getText().toString().trim();
 			Woo_add = address_edit.getText().toString().trim();
@@ -80,9 +84,9 @@ public class UpdateActivity extends AppCompatActivity implements IPaddress{
 			finish();
 		}
 	}
-	
 
-	
+
+
 	protected void getInt() {
 		it1 = getIntent();
 		Woo_gmail = it1.getStringExtra("Woo_gmail");
@@ -91,33 +95,33 @@ public class UpdateActivity extends AppCompatActivity implements IPaddress{
 		Woo_phone = it1.getStringExtra("Woo_phone");
 		Woo_ps=it1.getStringExtra("Woo_ps");
 	}
-	
+
 	AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-		
+
 		@Override
 		protected Void doInBackground(Void... params) {
-			
+
 			try{
 				Class.forName("com.mysql.jdbc.Driver");
 				con = DriverManager.getConnection(
 						"jdbc:mysql://"+ ip + "/" + dbName + "?useUnicode=true&characterEncoding=UTF-8", sqldbaccount,
 						sqldbpass);
-					String selectSQL = "update woo_table  set Woo_name = '" + Woo_name + "',Woo_phone = '" + Woo_phone +  "', Woo_add= '" + Woo_add +"', Woo_ps= '" + Woo_ps +"' where Woo_gmail = '" + Woo_gmail + "'"; //vivian 0723 "update vip_email set name = '"
-					PreparedStatement preparedStmt = con.prepareStatement(selectSQL);
-					preparedStmt.executeUpdate();
-					preparedStmt.close();
-					con.close();
-				}
-				catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ClassNotFoundException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			return null;
-			
+				String selectSQL = "update woo_table  set Woo_name = '" + Woo_name + "',Woo_phone = '" + Woo_phone +  "', Woo_add= '" + Woo_add +"', Woo_ps= '" + Woo_ps +"' where Woo_gmail = '" + Woo_gmail + "'";
+				PreparedStatement preparedStmt = con.prepareStatement(selectSQL);
+				preparedStmt.executeUpdate();
+				preparedStmt.close();
+				con.close();
 			}
+			catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ClassNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			return null;
+
+		}
 		//-----------------------------------------------------------------
 	};
 
@@ -139,5 +143,12 @@ public class UpdateActivity extends AppCompatActivity implements IPaddress{
 			finish();
 		}
 		return false;
+	}
+
+	@Override
+	public void onClick(View view) {
+		Intent it=new Intent(this, UserActivity.class);
+		startActivity(it);
+		finish();
 	}
 }
