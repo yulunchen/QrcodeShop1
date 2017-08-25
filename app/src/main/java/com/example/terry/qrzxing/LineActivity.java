@@ -1,8 +1,8 @@
 package com.example.terry.qrzxing;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
@@ -14,19 +14,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class LineActivity extends AppCompatActivity implements IPaddress{
+public class LineActivity extends AppCompatActivity{
     Connection con;
     Statement stmt;
     ResultSet rs;
     Intent it,it1;
-    String Woo_gmail, Woo_name, Woo_phone, Woo_address, Woo_ps;
+    String Woo_gmail, Woo_name, Woo_phone, Woo_address, Woo_ps, ip, dbName, sqldbaccount, sqldbpass;
 
-    static final String DB_NAME = "Vip_DB";//SQL資料庫
     static final String TB_NAME = "Vip_TB";//SQL會員資料表
     //設定資料表中除了_id流水號以外的欄位名稱字串陣列
     static final String[] FROM = new String[] {"gmail", "name", "phone"," address", "ps"};
+    DBHelper dbhelper=new DBHelper(this);
     SQLiteDatabase db;
-
+    Cursor cur;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,13 +35,20 @@ public class LineActivity extends AppCompatActivity implements IPaddress{
         getSupportActionBar().setDisplayUseLogoEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        sqlset();//開起sql資料庫設定
+        openDB();//開起sql資料庫設定
         getInt();//啟動自訂方法
 
     }
 
-    protected void sqlset(){
-        db = openOrCreateDatabase(DB_NAME, Context.MODE_PRIVATE, null);
+    protected void openDB(){
+        db=dbhelper.getWritableDatabase();
+        cur=db.rawQuery("SELECT * FROM Ip_TB", null);
+        while (cur.moveToNext()) {
+            ip = cur.getString(cur.getColumnIndex("ip"));
+            dbName = cur.getString(cur.getColumnIndex("db"));
+            sqldbaccount = cur.getString(cur.getColumnIndex("user"));
+            sqldbpass = cur.getString(cur.getColumnIndex("pass"));
+        }
     }
 
     protected void getInt(){
@@ -114,12 +121,18 @@ public class LineActivity extends AppCompatActivity implements IPaddress{
     //在內部資料庫新增資料的方法
     private void addData(String gmail, String name, String phone, String address, String ps) {
         ContentValues cv=new ContentValues(5);//建立含 4個欄位的 ContentValues物件
-        cv.put(FROM[0], gmail);//("欄位名稱", 字串)
+        cv.put(FROM[0], gmail);//("欄位名", 字串)
         cv.put(FROM[1], name);
         cv.put(FROM[2], phone);
         cv.put(FROM[3], address);
         cv.put(FROM[4], ps);
 
         db.insert(TB_NAME, null, cv);//新增1筆記錄
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbhelper.close();
     }
 }

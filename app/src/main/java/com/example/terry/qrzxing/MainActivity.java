@@ -12,6 +12,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
@@ -30,20 +33,19 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity implements OnItemSelectedListener, IPaddress, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements OnItemSelectedListener, View.OnClickListener {
 	Spinner account_sp;
 	Button start;
-	String vipEmail, selEmail;
+	String vipEmail, selEmail, ip, dbName, sqldbaccount, sqldbpass;
 	ImageView exit;
 	Connection con;
 	Statement stmt;
 	ResultSet rs;
-
 	Intent it1, it2;
 	int flag_a, flag_b;
-	static final String DB_NAME = "Vip_DB";//資料庫
 	static final String Vip_TB = "Vip_TB";//會員資料表
 	static final String Shop_TB = "Shop_TB";//購物車資料表
+	DBHelper dbhelper=new DBHelper(this);
 	SQLiteDatabase db;
 	Cursor cur;
 	@Override
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 		myView();// 執行頁面設定
 		mySpinner();// 執行Spinner
 		myListener();// 執行監聽器
-		sqlset();//執行內部資料庫設定
+		setSql();//執行內部資料庫設定
 
 	}
 
@@ -103,23 +105,21 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 		selEmail = (String) account_sp.getSelectedItem();
 	}
 
-	protected void sqlset(){
-		db = openOrCreateDatabase(DB_NAME, Context.MODE_PRIVATE, null);
-		// 建立會員資料表
-		String createTable1 = "CREATE TABLE IF NOT EXISTS " + Vip_TB + "(_id INTEGER PRIMARY KEY AUTOINCREMENT, " + // 索引欄位
-				"gmail VARCHAR(60), " + "name VARCHAR(32), " + "phone VARCHAR(32), " + "address VARCHAR(50), "+ "ps VARCHAR(200))";
-		db.execSQL(createTable1);
+	protected void setSql(){
+		db=dbhelper.getWritableDatabase();
+		cur=db.rawQuery("SELECT * FROM Ip_TB", null);
+		while (cur.moveToNext()) {
+			ip = cur.getString(cur.getColumnIndex("ip"));
+			dbName = cur.getString(cur.getColumnIndex("db"));
+			sqldbaccount = cur.getString(cur.getColumnIndex("user"));
+			sqldbpass = cur.getString(cur.getColumnIndex("pass"));
+		}
+		String delVip="DELETE FROM "+Vip_TB;
+		db.execSQL(delVip);
 
-		String del="DELETE FROM "+Vip_TB;
-		db.execSQL(del);
+		String delShop="DELETE FROM "+Shop_TB;
+		db.execSQL(delShop);
 
-		//建立購物車資料表
-		String createTable2 ="CREATE TABLE IF NOT EXISTS " + Shop_TB +
-				"(_id INTEGER PRIMARY KEY AUTOINCREMENT, " +//會自動增加的流水號，一定要有
-				"goods VARCHAR(32), " +//商品名稱欄位
-				"price  INTEGER(32), " +//商品價格欄位
-				"quantity  INTEGER(32))";//商品數量欄位
-		db.execSQL(createTable2);
 	}
 
 
@@ -214,7 +214,21 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 	@Override
 	public void onNothingSelected(AdapterView<?> parent) {
 		// TODO Auto-generated method stub
+	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		MenuInflater inflater=getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		startActivity(new Intent(this, IpActivity.class));
+		finish();
+		return super.onOptionsItemSelected(item);
 	}
 
 	Boolean isExit = false;
@@ -253,4 +267,11 @@ public class MainActivity extends AppCompatActivity implements OnItemSelectedLis
 			finishAffinity();// 結束APP程式
 		}
 	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		dbhelper.close();
+	}
+
 }

@@ -1,7 +1,6 @@
 package com.example.terry.qrzxing;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -11,7 +10,6 @@ import android.os.Bundle;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.telephony.SmsManager;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -29,24 +27,25 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+
 public class ShopActivity extends AppCompatActivity implements AdapterView.OnItemClickListener,
-        AdapterView.OnItemLongClickListener, IPaddress, View.OnClickListener{
+        AdapterView.OnItemLongClickListener, View.OnClickListener{
     ListView lv;
     TextView total;
     TextView goods_sel;
     EditText quantity_et;
-    String goods_up, Woo_gmail, Woo_nq, Woo_num, Woo_total, phone;
+    String goods_up, Woo_gmail, Woo_nq, Woo_num, Woo_total, phone, info, ip, dbName, sqldbaccount, sqldbpass;
     Button button;
     ImageView exit;
     int flag, subtotal;
 
-    static final String DB_NAME = "Vip_DB";// SQLitey資料庫名稱
     static final String Shop_TB= "Shop_TB";// 購物車資料表名稱
     static final String Vip_TB = "Vip_TB";// 會員資料表名稱
     static final String[] FROM = new String[] {"goods","price","quantity"};//SQLite資料庫的欄位名稱
+    DBHelper dbhelper=new DBHelper(this);
     SQLiteDatabase db;//SQLite資料庫物件
     SimpleCursorAdapter adapter;//自設的ListView顯示方式
-    Cursor cur_shop, cur_tl;//SQLite查詢物件
+    Cursor cur, cur_shop, cur_tl;//SQLite查詢物件
 
     Connection con;
     PreparedStatement pst;
@@ -58,14 +57,10 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
         getSupportActionBar().setDisplayUseLogoEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        goods_sel=(TextView) findViewById(R.id.goods_sel);
-        quantity_et=(EditText)findViewById(R.id.quantity_et);
-        total=(TextView)findViewById(R.id.total);
-        lv=(ListView) findViewById(R.id.lv);
-        button=(Button)findViewById(R.id.button);
-        exit=(ImageView) findViewById(R.id.exit);
-        // 開啟或建立資料庫
-        db = openOrCreateDatabase(DB_NAME, Context.MODE_PRIVATE, null);
+
+        findView();
+        openDB();
+
         //查詢購物車內所有資料
         cur_shop=db.rawQuery("SELECT *  FROM "+ Shop_TB, null);
         adapter=new SimpleCursorAdapter(this,//自設的ListView顯示方式
@@ -81,6 +76,26 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
         exit.setOnClickListener(this);
         total();//執行合計計算方法
 
+    }
+
+    protected void findView(){
+        goods_sel=(TextView) findViewById(R.id.goods_sel);
+        quantity_et=(EditText)findViewById(R.id.quantity_et);
+        total=(TextView)findViewById(R.id.total);
+        lv=(ListView) findViewById(R.id.lv);
+        button=(Button)findViewById(R.id.button);
+        exit=(ImageView) findViewById(R.id.exit);
+    }
+
+    protected void openDB(){
+        db=dbhelper.getWritableDatabase();
+        cur=db.rawQuery("SELECT * FROM Ip_TB", null);
+        while (cur.moveToNext()) {
+            ip = cur.getString(cur.getColumnIndex("ip"));
+            dbName = cur.getString(cur.getColumnIndex("db"));
+            sqldbaccount = cur.getString(cur.getColumnIndex("user"));
+            sqldbpass = cur.getString(cur.getColumnIndex("pass"));
+        }
     }
 
     @Override
@@ -228,10 +243,12 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void num(){
         //設計樣板
         SimpleDateFormat sdf =new SimpleDateFormat("yyyymmddhhmmss");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日HH:mm");
         //取得系統時間
-        Date dt = new Date();
+        Date dt = new Date(System.currentTimeMillis());
         //將系統時間轉成字串後在前面加上"Woo"
         Woo_num = "Woo"+sdf.format(dt);
+        info=formatter.format(dt);
     }
 
     // 非同步任務設定
@@ -247,10 +264,10 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
                         "jdbc:mysql://" + ip + "/" + dbName + "?useUnicode=true&characterEncoding=UTF-8", sqldbaccount,
                         sqldbpass);
                 ///設定新增資料的sql語法
-                String insertdbSQL = "insert into woo_order (Woo_gmail,Woo_nq,Woo_num,Woo_total) "//vivian 0723 vip_email(id,email,name,phone,address)
-                        + "VALUES(?, ? , ?, ?)";// vivian 0723 "select ifNULL(max(id),0)+1,?,?,?,? FROM vip_email"
+                String insertdbSQL = "insert into woo_order (Woo_gmail,Woo_nq,Woo_num,Woo_total) "
+                        + "VALUES(?, ? , ?, ?)";
                 //將帶入的字串陣列依序將字串放入相應的欄位順序
-                pst=con.prepareStatement(insertdbSQL);//vivian 0724 新增
+                pst=con.prepareStatement(insertdbSQL);
                 pst.setString(1, params[0]);
                 pst.setString(2, params[1]);
                 pst.setString(3, params[2]);
@@ -260,6 +277,8 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
 
                 pst.close();
                 con.close();
+                //寄出訂單mail
+                sendMail();
             } catch (SQLException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -275,19 +294,7 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
         protected void onPostExecute(Void result) {
             // TODO Auto-generated method stub
             super.onPostExecute(result);
-
-
-            //寄出簡訊給自己的方法
-            //要開啟android.permission.SEND_SMS簡訊權限
-            String mobile = phone;//取得使用者手機號碼
-            // 獲取訊息內容
-            String message = "您的訂單編號："+Woo_num;//產生訂單編號流水號
-            //建立簡訊物件
-            SmsManager sms = SmsManager.getDefault();
-            //寄出簡訊
-            sms.sendTextMessage(mobile, null,  message, null, null);
-
-            Toast.makeText(getApplicationContext(), "訂單編號已發送至手機簡訊", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "訂單已送出，訂單編號已寄至您的信箱", Toast.LENGTH_LONG).show();
             //清掉這筆購物車表單資料
             String del="DELETE FROM "+Shop_TB;
             db.execSQL(del);
@@ -298,6 +305,20 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
             flag=1;
         }
     };
+
+    //寄出email方法
+    protected void sendMail(){
+        try {
+            //建立GMailSender物件，參數是寄件信箱與密碼
+            GMailSender sender = new GMailSender("kitagawasan.test@gmail.com", "testmail");
+            sender.sendMail("QRCODE購物訂單",//信件標題
+                    "感謝您在"+info+"的購物"+'\n'+"您的訂單編號："+Woo_num,//信件內容
+                    "kitagawasan.test@gmail.com",//寄件者
+                    Woo_gmail);//收件者
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) { // 判斷是否按下返回鍵
@@ -311,5 +332,11 @@ public class ShopActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onClick(View view) {
         startActivity(new Intent(this, HomeActivity.class));
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbhelper.close();
     }
 }

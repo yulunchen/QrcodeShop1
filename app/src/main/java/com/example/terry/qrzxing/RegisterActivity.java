@@ -1,7 +1,6 @@
 package com.example.terry.qrzxing;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -21,21 +20,21 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class RegisterActivity extends AppCompatActivity implements IPaddress, View.OnClickListener{
+public class RegisterActivity extends AppCompatActivity implements View.OnClickListener{
 	TextView emailTxv;
 	EditText nameEdit, phoneEdit, addressEdit, psEdit;
 	Button registerBt;
-	String Woo_gmail, Woo_name, Woo_phone, Woo_add, Woo_ps;
+	String Woo_gmail, Woo_name, Woo_phone, Woo_add, Woo_ps, ip, dbName, sqldbaccount, sqldbpass;
 	Intent it1, it2;
 	ImageView exit;
 
 	Connection con;
 	PreparedStatement pst;
 
-	static final String DB_NAME = "Vip_DB";
 	static final String TB_NAME = "Vip_TB";
 	//設定資料表中除了_id流水號以外的欄位名稱字串陣列
 	static final String[] FROM = new String[] {"gmail", "name", "phone"," address", "ps"};
+	DBHelper dbhelper=new DBHelper(this);
 	SQLiteDatabase db;
 	Cursor cur;
 	@Override
@@ -49,12 +48,10 @@ public class RegisterActivity extends AppCompatActivity implements IPaddress, Vi
 		View v = findViewById(R.id.LinearLayout1);
 		v.getBackground().setAlpha(200);//0~255透明度值
 
-
 		getInt();//取得上一頁帶來的資料
 		myView();//執行畫面設定
-		sqlset();
+		openDB();
 	}
-
 
 	protected void getInt() {//設定接收資料
 		//取得上一頁帶來的字串資料
@@ -62,10 +59,15 @@ public class RegisterActivity extends AppCompatActivity implements IPaddress, Vi
 		Woo_gmail = it1.getStringExtra("Woo_gmail");
 	}
 
-	protected void sqlset(){
-		db = openOrCreateDatabase(DB_NAME, Context.MODE_PRIVATE, null);
-		//查詢資料表
-		cur=db.rawQuery("SELECT * FROM "+ TB_NAME, null);
+	protected void openDB(){
+		db=dbhelper.getWritableDatabase();
+		cur=db.rawQuery("SELECT * FROM Ip_TB", null);
+		while (cur.moveToNext()) {
+			ip = cur.getString(cur.getColumnIndex("ip"));
+			dbName = cur.getString(cur.getColumnIndex("db"));
+			sqldbaccount = cur.getString(cur.getColumnIndex("user"));
+			sqldbpass = cur.getString(cur.getColumnIndex("pass"));
+		}
 	}
 
 	protected void myView() {//畫面設定
@@ -127,7 +129,7 @@ public class RegisterActivity extends AppCompatActivity implements IPaddress, Vi
 				String insertdbSQL = "insert into woo_table (id,Woo_gmail,Woo_name,Woo_phone,Woo_add,Woo_ps) "
 						+ "select ifNULL(max(id),0)+1,?,?,?,?,? FROM woo_table";
 				//將帶入的字串陣列依序將字串放入相應的欄位順序
-				pst=con.prepareStatement(insertdbSQL);//vivian 0724 新增
+				pst=con.prepareStatement(insertdbSQL);
 				pst.setString(1, params[0]);
 				pst.setString(2, params[1]);
 				pst.setString(3, params[2]);
@@ -190,5 +192,11 @@ public class RegisterActivity extends AppCompatActivity implements IPaddress, Vi
 		Intent it =new Intent(this, MainActivity.class);
 		startActivity(it);
 		finish();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		dbhelper.close();
 	}
 }

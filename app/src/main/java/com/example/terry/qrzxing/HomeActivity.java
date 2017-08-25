@@ -13,7 +13,7 @@ import android.widget.Toast;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class HomeActivity extends AppCompatActivity implements IPaddress {
+public class HomeActivity extends AppCompatActivity{
     ImageView img;
     Intent it1, it2 ,it3, it4;
     Button Car,Qrzxing,list,hello;
@@ -26,10 +26,8 @@ public class HomeActivity extends AppCompatActivity implements IPaddress {
         getSupportActionBar().setDisplayUseLogoEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        Car= (Button)findViewById(R.id.Car);
-        Qrzxing=(Button)findViewById(R.id.Qrzxing);
-        list=(Button)findViewById(R.id.list);
-        hello=(Button)findViewById(R.id.hello);
+        findView();
+
         //與View上的ImageView作關聯
         img=(ImageView)findViewById(R.id.img);
 
@@ -45,9 +43,14 @@ public class HomeActivity extends AppCompatActivity implements IPaddress {
         //啟動圖檔動畫效果
         animationDrawable.start();
 
-
     }
 
+    protected void findView(){
+        Car= (Button)findViewById(R.id.Car);
+        Qrzxing=(Button)findViewById(R.id.Qrzxing);
+        list=(Button)findViewById(R.id.list);
+        hello=(Button)findViewById(R.id.hello);
+    }
 
     public void san(View v) {
         // 設定目的地為UserActivity頁面，並放入帳號字串資料

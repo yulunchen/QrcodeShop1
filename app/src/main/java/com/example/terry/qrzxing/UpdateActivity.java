@@ -1,8 +1,8 @@
 package com.example.terry.qrzxing;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -20,20 +20,20 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 
-
-public class UpdateActivity extends AppCompatActivity implements IPaddress, View.OnClickListener{
+public class UpdateActivity extends AppCompatActivity implements View.OnClickListener{
 	EditText name_edit, phone_edit, address_edit,ps_edit;
 	Intent it1, it2;
 	Button savebt;
 	ImageView exit;
-	String Woo_gmail,Woo_name,Woo_add,Woo_phone,Woo_ps;
+	String Woo_gmail,Woo_name,Woo_add,Woo_phone,Woo_ps, ip, dbName, sqldbaccount, sqldbpass;
 	Connection con;
 
-	static final String DB_NAME = "Vip_DB";
 	static final String TB_NAME = "Vip_TB";
 	//設定資料表中除了_id流水號以外的欄位名稱字串陣列
 	static final String[] FROM = new String[] {"name", "phone"," address", "ps"};
+	DBHelper dbhelper=new DBHelper(this);
 	SQLiteDatabase db;
+	Cursor cur;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,10 +43,14 @@ public class UpdateActivity extends AppCompatActivity implements IPaddress, View
 		getSupportActionBar().setDisplayUseLogoEnabled(true);
 		getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-		db = openOrCreateDatabase(DB_NAME, Context.MODE_PRIVATE, null);
 		getInt();
+		findView();
+		openDB();
 
+		exit.setOnClickListener(this);
+	}
 
+	protected void findView(){
 		name_edit = (EditText)findViewById(R.id.name_edit);
 		phone_edit = (EditText)findViewById(R.id.phone_edit);
 		address_edit = (EditText)findViewById(R.id.address_edit);
@@ -57,9 +61,7 @@ public class UpdateActivity extends AppCompatActivity implements IPaddress, View
 		address_edit.setText(Woo_add);
 		ps_edit.setText(Woo_ps);
 		exit=(ImageView)findViewById(R.id.exit);
-		exit.setOnClickListener(this);
 	}
-
 
 	public void save (View v) {
 		//判斷有無輸入資料
@@ -85,8 +87,6 @@ public class UpdateActivity extends AppCompatActivity implements IPaddress, View
 		}
 	}
 
-
-
 	protected void getInt() {
 		it1 = getIntent();
 		Woo_gmail = it1.getStringExtra("Woo_gmail");
@@ -94,6 +94,17 @@ public class UpdateActivity extends AppCompatActivity implements IPaddress, View
 		Woo_add = it1.getStringExtra("Woo_add");
 		Woo_phone = it1.getStringExtra("Woo_phone");
 		Woo_ps=it1.getStringExtra("Woo_ps");
+	}
+
+	protected void openDB(){
+		db=dbhelper.getWritableDatabase();
+		cur=db.rawQuery("SELECT * FROM Ip_TB", null);
+		while (cur.moveToNext()) {
+			ip = cur.getString(cur.getColumnIndex("ip"));
+			dbName = cur.getString(cur.getColumnIndex("db"));
+			sqldbaccount = cur.getString(cur.getColumnIndex("user"));
+			sqldbpass = cur.getString(cur.getColumnIndex("pass"));
+		}
 	}
 
 	AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
@@ -150,5 +161,11 @@ public class UpdateActivity extends AppCompatActivity implements IPaddress, View
 		Intent it=new Intent(this, UserActivity.class);
 		startActivity(it);
 		finish();
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		dbhelper.close();
 	}
 }

@@ -1,6 +1,8 @@
 package com.example.terry.qrzxing;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,19 +23,23 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-public class OrderActivity extends AppCompatActivity implements IPaddress, View.OnClickListener{
+public class OrderActivity extends AppCompatActivity implements  View.OnClickListener{
     EditText editText;
     Button button;
     ListView lv;
     TextView txv;
     ImageView exit;
-    String number, nq_all, total;
+    String number, nq_all, total, ip, dbName, sqldbaccount, sqldbpass;;
     Connection con;
     Statement stmt;
     ResultSet rs;
     //集合物物件，用來放ListView的內容
     ArrayList<String> array=new ArrayList<>();
     int flag;
+
+    DBHelper dbhelper=new DBHelper(this);
+    SQLiteDatabase db;
+    Cursor cur;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,17 +48,28 @@ public class OrderActivity extends AppCompatActivity implements IPaddress, View.
         getSupportActionBar().setDisplayUseLogoEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        setView();
-
+        findView();
+        openDB();
     }
 
-    protected void setView() {
+    protected void findView() {
         editText=(EditText)findViewById(R.id.editText);
         button=(Button)findViewById(R.id.button);
         lv=(ListView)findViewById(R.id.lv);
         txv=(TextView)findViewById(R.id.txv);
         exit=(ImageView)findViewById(R.id.exit);
         exit.setOnClickListener(this);
+    }
+
+    protected void openDB(){
+        db=dbhelper.getWritableDatabase();
+        cur=db.rawQuery("SELECT * FROM Ip_TB", null);
+        while (cur.moveToNext()) {
+            ip = cur.getString(cur.getColumnIndex("ip"));
+            dbName = cur.getString(cur.getColumnIndex("db"));
+            sqldbaccount = cur.getString(cur.getColumnIndex("user"));
+            sqldbpass = cur.getString(cur.getColumnIndex("pass"));
+        }
     }
 
     public void inquire(View v){
@@ -141,8 +158,6 @@ public class OrderActivity extends AppCompatActivity implements IPaddress, View.
         lv.setAdapter(nq_adapter);
     }
 
-
-
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) { // 判斷是否按下返回鍵
             startActivity(new Intent(this, HomeActivity.class));
@@ -155,5 +170,11 @@ public class OrderActivity extends AppCompatActivity implements IPaddress, View.
     public void onClick(View view) {
         startActivity(new Intent(this, HomeActivity.class));
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbhelper.close();
     }
 }

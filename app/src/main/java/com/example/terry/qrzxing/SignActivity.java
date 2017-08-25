@@ -1,7 +1,6 @@
 package com.example.terry.qrzxing;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -24,9 +23,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-
-
-public class SignActivity extends AppCompatActivity implements IPaddress, View.OnClickListener{
+public class SignActivity extends AppCompatActivity implements View.OnClickListener{
     Button button;
     TextView idTxv, goodsTxv, priceTxv , infoTxv  ;
     ImageView exit;
@@ -34,13 +31,13 @@ public class SignActivity extends AppCompatActivity implements IPaddress, View.O
     Connection con;
     Statement stmt;
     ResultSet rs;
-    String Woo_id, Woo_goods,  Woo_info ,Woo_img;
+    String Woo_id, Woo_goods,  Woo_info ,Woo_img ,ip, dbName, sqldbaccount, sqldbpass;
     int Woo_price;
 
-    static final String DB_NAME = "Vip_DB";// SQLitey資料庫名稱//"ShopDB"
     static final String TB_NAME = "Shop_TB";// SQLite資料表名稱//"Shoplist
     static final String[] FROM = new String[] {"goods","price","quantity"};//SQLite資料庫的欄位名稱
-    SQLiteDatabase sql_db;//SQLite資料庫物件
+    DBHelper dbhelper=new DBHelper(this);
+    SQLiteDatabase db;//SQLite資料庫物件
     Cursor cur;//SQLite查詢物件
     ImageView img;
     int flag=0;
@@ -52,7 +49,24 @@ public class SignActivity extends AppCompatActivity implements IPaddress, View.O
         getSupportActionBar().setDisplayUseLogoEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+        openDB();
+        findView();
 
+    }
+
+    protected void openDB(){
+        // 開啟或建立資料庫
+        db=dbhelper.getWritableDatabase();
+        cur=db.rawQuery("SELECT * FROM Ip_TB", null);
+        while (cur.moveToNext()) {
+            ip = cur.getString(cur.getColumnIndex("ip"));
+            dbName = cur.getString(cur.getColumnIndex("db"));
+            sqldbaccount = cur.getString(cur.getColumnIndex("user"));
+            sqldbpass = cur.getString(cur.getColumnIndex("pass"));
+        }
+    }
+
+    protected void findView(){
         button = (Button) findViewById(R.id.button);
         idTxv = (TextView) findViewById(R.id.idTxv);
         goodsTxv = (TextView) findViewById(R.id.goodsTxv);
@@ -60,13 +74,8 @@ public class SignActivity extends AppCompatActivity implements IPaddress, View.O
         infoTxv = (TextView) findViewById(R.id.infoTxv);
         img = (ImageView) findViewById(R.id.imageView);
         exit=(ImageView) findViewById(R.id.exit);
-
-        // 開啟或建立資料庫
-        sql_db = openOrCreateDatabase(DB_NAME, Context.MODE_PRIVATE, null);
-
         exit.setOnClickListener(this);
     }
-
 
     //建立IntentIntegrator物件前，要先到Gradle Scripts/build.gradle(Modile:app)中
     //在dependencies { }內貼上
@@ -83,7 +92,7 @@ public class SignActivity extends AppCompatActivity implements IPaddress, View.O
             integrator.initiateScan();
         }else if(flag==1){//加入購物
             //查詢SQLite資料庫中有相同商品名稱的資料
-            cur = sql_db.rawQuery("SELECT * FROM "+TB_NAME+" WHERE  goods=?", new String[]{Woo_goods});
+            cur = db.rawQuery("SELECT * FROM "+TB_NAME+" WHERE  goods=?", new String[]{Woo_goods});
             int total = cur.getCount();
             if (total > 0) {
                 Toast.makeText(getApplicationContext(), "已加入購物車", Toast.LENGTH_LONG).show();
@@ -166,7 +175,7 @@ public class SignActivity extends AppCompatActivity implements IPaddress, View.O
                 goodsTxv.setText(Woo_goods);//在畫面上顯示商品名稱
                 priceTxv.setText(String.valueOf(Woo_price).toString());//在畫面上顯示商品售價
                 infoTxv.setText(Woo_info);
-                setImage();////在畫面上顯示圖片資
+                setImage();//在畫面上顯示圖片
             }
             button.setEnabled(true);//恢復按鈕功能
         }
@@ -179,7 +188,7 @@ public class SignActivity extends AppCompatActivity implements IPaddress, View.O
         cv.put(FROM[1], price);//在price填入商品售價
         cv.put(FROM[2], quantity);//在quantity填入購買數量
 
-        sql_db.insert(TB_NAME, null, cv);//新增1筆記錄
+        db.insert(TB_NAME, null, cv);//新增1筆記錄
     }
 
     //顯示圖片方法
@@ -191,8 +200,6 @@ public class SignActivity extends AppCompatActivity implements IPaddress, View.O
         //設定dish_img圖片物件所要顯示的圖片路徑
         img.setImageResource(imageResource);
     }
-
-
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) { // 判斷是否按下返回鍵
@@ -206,5 +213,11 @@ public class SignActivity extends AppCompatActivity implements IPaddress, View.O
     public void onClick(View view) {
         startActivity(new Intent(this, HomeActivity.class));
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbhelper.close();
     }
 }
