@@ -13,10 +13,10 @@ import android.widget.Toast;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class HomeActivity extends AppCompatActivity{
+public class HomeActivity extends AppCompatActivity {
     ImageView img;
-    Intent it1, it2 ,it3, it4;
-    Button Car,Qrzxing,list,hello;
+    Intent it1, it2, it3, it4;
+    Button Car, Qrzxing, list, hello;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +29,7 @@ public class HomeActivity extends AppCompatActivity{
         findView();
 
         //與View上的ImageView作關聯
-        img=(ImageView)findViewById(R.id.img);
+        img = (ImageView) findViewById(R.id.img);
 
         //設定ImageView上所要顯示的圖片群
         //圖片群的設定要在res/drawable-mdpi下新增一個xml來寫設定
@@ -37,7 +37,7 @@ public class HomeActivity extends AppCompatActivity{
         img.setBackgroundResource(R.drawable.animation_xml);
 
         //建立AnimationDrawable圖檔動畫物件
-        AnimationDrawable animationDrawable=
+        AnimationDrawable animationDrawable =
                 (AnimationDrawable) img.getBackground();
 
         //啟動圖檔動畫效果
@@ -45,11 +45,11 @@ public class HomeActivity extends AppCompatActivity{
 
     }
 
-    protected void findView(){
-        Car= (Button)findViewById(R.id.Car);
-        Qrzxing=(Button)findViewById(R.id.Qrzxing);
-        list=(Button)findViewById(R.id.list);
-        hello=(Button)findViewById(R.id.hello);
+    protected void findView() {
+        Car = (Button) findViewById(R.id.Car);
+        Qrzxing = (Button) findViewById(R.id.Qrzxing);
+        list = (Button) findViewById(R.id.list);
+        hello = (Button) findViewById(R.id.hello);
     }
 
     public void san(View v) {
@@ -72,6 +72,7 @@ public class HomeActivity extends AppCompatActivity{
         startActivity(it3);
         finish();
     }
+
     public void welcome(View v) {
         // 設定目的地為UserActivity頁面，並放入帳號字串資料
         it4 = new Intent(this, UserActivity.class);
@@ -89,6 +90,7 @@ public class HomeActivity extends AppCompatActivity{
             hasTask = true;
         }
     };
+
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) { // 判斷是否按下返回鍵
             if (isExit == false) {// 按一下不會退出

@@ -14,19 +14,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class LineActivity extends AppCompatActivity{
+public class LineActivity extends AppCompatActivity {
     Connection con;
     Statement stmt;
     ResultSet rs;
-    Intent it,it1;
+    Intent it, it1;
     String Woo_gmail, Woo_name, Woo_phone, Woo_address, Woo_ps, ip, dbName, sqldbaccount, sqldbpass;
 
     static final String TB_NAME = "Vip_TB";//SQL會員資料表
     //設定資料表中除了_id流水號以外的欄位名稱字串陣列
-    static final String[] FROM = new String[] {"gmail", "name", "phone"," address", "ps"};
-    DBHelper dbhelper=new DBHelper(this);
+    static final String[] FROM = new String[]{"gmail", "name", "phone", " address", "ps"};
+    DBHelper dbhelper = new DBHelper(this);
     SQLiteDatabase db;
     Cursor cur;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,9 +41,9 @@ public class LineActivity extends AppCompatActivity{
 
     }
 
-    protected void openDB(){
-        db=dbhelper.getWritableDatabase();
-        cur=db.rawQuery("SELECT * FROM Ip_TB", null);
+    protected void openDB() {
+        db = dbhelper.getWritableDatabase();
+        cur = db.rawQuery("SELECT * FROM Ip_TB", null);
         while (cur.moveToNext()) {
             ip = cur.getString(cur.getColumnIndex("ip"));
             dbName = cur.getString(cur.getColumnIndex("db"));
@@ -51,12 +52,12 @@ public class LineActivity extends AppCompatActivity{
         }
     }
 
-    protected void getInt(){
+    protected void getInt() {
         //取得上頁帶來的gmail帳號
-        it= getIntent();
-        Woo_gmail=it.getStringExtra("Woo_gmail");
+        it = getIntent();
+        Woo_gmail = it.getStringExtra("Woo_gmail");
         //指定到HomeActivity
-        it1=new Intent(this, HomeActivity.class);
+        it1 = new Intent(this, HomeActivity.class);
         //執行非同步任務並帶入gmail資料
         task.execute(Woo_gmail);
     }
@@ -120,7 +121,7 @@ public class LineActivity extends AppCompatActivity{
 
     //在內部資料庫新增資料的方法
     private void addData(String gmail, String name, String phone, String address, String ps) {
-        ContentValues cv=new ContentValues(5);//建立含 4個欄位的 ContentValues物件
+        ContentValues cv = new ContentValues(5);//建立含 4個欄位的 ContentValues物件
         cv.put(FROM[0], gmail);//("欄位名", 字串)
         cv.put(FROM[1], name);
         cv.put(FROM[2], phone);

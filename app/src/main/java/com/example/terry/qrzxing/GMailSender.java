@@ -10,6 +10,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 
 import android.util.Log;
+
 import java.security.Security;
 import java.util.Properties;
 
@@ -47,7 +48,7 @@ public class GMailSender extends javax.mail.Authenticator {
     }
 
     public synchronized void sendMail(String subject, String body, String sender, String recipients) throws Exception {
-        try{
+        try {
             Log.i("subject::::::::", subject);
             Log.i("body::::::::", body);
             Log.i("sender::::::::", sender);
@@ -63,8 +64,8 @@ public class GMailSender extends javax.mail.Authenticator {
             else
                 message.setRecipient(Message.RecipientType.TO, new InternetAddress(recipients));
             Transport.send(message);
-        }catch(Exception e){
-            Log.i("eeeeee::::::::", e+"");
+        } catch (Exception e) {
+            Log.i("eeeeee::::::::", e + "");
         }
     }
 

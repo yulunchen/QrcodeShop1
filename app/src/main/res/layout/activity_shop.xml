@@ -86,9 +86,9 @@
             android:layout_weight="1"
             android:ems="10"
             android:foregroundGravity="center"
+            android:imeOptions="flagNoExtractUi"
             android:inputType="number"
-            android:selectAllOnFocus="false"
-            android:singleLine="false" />
+            android:selectAllOnFocus="false" />
 
         <Button
             android:id="@+id/button5"

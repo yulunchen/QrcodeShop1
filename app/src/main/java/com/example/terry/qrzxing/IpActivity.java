@@ -13,13 +13,14 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class IpActivity extends AppCompatActivity implements View.OnClickListener{
+public class IpActivity extends AppCompatActivity implements View.OnClickListener {
     EditText ipEdit, dbEdit, userEdit, passEdit;
     Button button;
     ImageView exit;
-    DBHelper dbhelper=new DBHelper(this);
+    DBHelper dbhelper = new DBHelper(this);
     SQLiteDatabase db;
     Cursor cur;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,25 +30,24 @@ public class IpActivity extends AppCompatActivity implements View.OnClickListene
         openDB();
         setEdit();
 
-
     }
 
-    protected void findView(){
-        ipEdit=(EditText)findViewById(R.id.ipEdit);
-        dbEdit=(EditText)findViewById(R.id.dbEdit);
-        userEdit=(EditText)findViewById(R.id.userEdit);
-        passEdit=(EditText)findViewById(R.id.passEdit);
-        button=(Button)findViewById(R.id.button);
-        exit=(ImageView)findViewById(R.id.exit);
+    protected void findView() {
+        ipEdit = (EditText) findViewById(R.id.ipEdit);
+        dbEdit = (EditText) findViewById(R.id.dbEdit);
+        userEdit = (EditText) findViewById(R.id.userEdit);
+        passEdit = (EditText) findViewById(R.id.passEdit);
+        button = (Button) findViewById(R.id.button);
+        exit = (ImageView) findViewById(R.id.exit);
         exit.setOnClickListener(this);
     }
 
-    protected  void openDB(){
-        db=dbhelper.getWritableDatabase();
+    protected void openDB() {
+        db = dbhelper.getWritableDatabase();
     }
 
-    protected void setEdit(){
-        cur=db.rawQuery("SELECT * FROM Ip_TB", null);
+    protected void setEdit() {
+        cur = db.rawQuery("SELECT * FROM Ip_TB", null);
         while (cur.moveToNext()) {
             ipEdit.setText(cur.getString(cur.getColumnIndex("ip")));
             dbEdit.setText(cur.getString(cur.getColumnIndex("db")));
@@ -56,19 +56,19 @@ public class IpActivity extends AppCompatActivity implements View.OnClickListene
         }
     }
 
-    public void upIp(View v){
-        String ip=ipEdit.getText().toString();
-        String dbname=dbEdit.getText().toString();
-        String user=userEdit.getText().toString();
-        String pass=passEdit.getText().toString();
+    public void upIp(View v) {
+        String ip = ipEdit.getText().toString();
+        String dbname = dbEdit.getText().toString();
+        String user = userEdit.getText().toString();
+        String pass = passEdit.getText().toString();
 
-        ContentValues cv=new ContentValues();
+        ContentValues cv = new ContentValues();
         cv.put("ip", ip);
         cv.put("db", dbname);
         cv.put("user", user);
         cv.put("pass", pass);
 
-        db.update("Ip_TB", cv, "_id="+1, null);//更新 id 所指的欄位
+        db.update("Ip_TB", cv, "_id=" + 1, null);//更新 id 所指的欄位
 
         Toast.makeText(v.getContext(), "連線資料已修改", Toast.LENGTH_LONG).show();
 
